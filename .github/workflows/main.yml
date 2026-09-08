@@ -19,6 +19,6 @@ jobs:
           host: ftp.revisaai.net
           user: revisaai1
           password: Levinson99revisaai1!
-          localDir: "."
-          remoteDir: "public_html"
+          localDir: "./"
+          remoteDir: "./public_html/"
           forceSsl: false
