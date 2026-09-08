@@ -1,0 +1,3 @@
+POSTGRES_DB=revisa
+POSTGRES_USER=revisa
+POSTGRES_PASSWORD=change-me-before-deploying

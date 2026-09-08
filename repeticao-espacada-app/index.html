@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Revisa — Repetição Espaçada</title>
+<meta name="theme-color" content="#5b4bff" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icon.svg" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+
+    <header class="topbar">
+      <div class="topbar-group">
+        <button id="sidebar-toggle" class="icon-btn" aria-label="Abrir fichários">☰</button>
+        <button id="search-toggle" class="icon-btn" aria-label="Buscar">🔍</button>
+      </div>
+      <h1>Revisa</h1>
+      <button id="theme-toggle" class="theme-toggle" aria-label="Alternar tema">🌙</button>
+    </header>
+
+    <div id="sync-bar" class="sync-bar" hidden></div>
+
+    <nav class="tabbar">
+      <button id="tab-hoje" class="tab-btn active" data-tab="hoje">Hoje <span id="hoje-count" class="tab-count"></span></button>
+      <button id="tab-agenda" class="tab-btn" data-tab="agenda">Agenda</button>
+      <button id="tab-ficharios" class="tab-btn" data-tab="ficharios">Fichários</button>
+    </nav>
+
+    <!-- HOJE -->
+    <section id="panel-hoje" class="panel active">
+      <div id="hoje-list" class="topic-list"></div>
+      <p id="hoje-empty" class="empty-state" hidden>🎉 Nada pra revisar agora. Volte mais tarde.</p>
+    </section>
+
+    <!-- AGENDA -->
+    <section id="panel-agenda" class="panel">
+      <div id="agenda-list" class="agenda-list"></div>
+      <p id="agenda-empty" class="empty-state" hidden>Nada agendado ainda. Crie tópicos pra ver a agenda de revisões.</p>
+    </section>
+
+    <!-- FICHÁRIOS -->
+    <section id="panel-ficharios" class="panel">
+      <div id="breadcrumb" class="breadcrumb"></div>
+      <div id="folder-grid" class="folder-grid"></div>
+      <div id="topic-grid" class="topic-list"></div>
+      <p id="ficharios-empty" class="empty-state" hidden>Vazio por aqui. Toque em <strong>+</strong> pra criar um fichário ou tópico.</p>
+    </section>
+
+    <div class="fab-dock">
+      <button id="fab" class="fab" aria-label="Adicionar">+</button>
+    </div>
+
+    <!-- BOTTOM SHEET: escolher o que criar -->
+    <div id="sheet-add" class="sheet-overlay" hidden>
+      <div class="sheet">
+        <button id="sheet-new-folder" class="sheet-option">📁 Novo fichário aqui</button>
+        <button id="sheet-new-topic" class="sheet-option">🎯 Novo tópico aqui</button>
+        <button class="sheet-cancel" data-close-sheet>Cancelar</button>
+      </div>
+    </div>
+
+    <!-- VIEW: form de fichário (novo/editar) -->
+    <section id="view-folder-form" class="view">
+      <header class="topbar">
+        <button class="icon-btn back" data-back="ficharios" aria-label="Voltar">←</button>
+        <h1 id="folder-form-title">Novo fichário</h1>
+        <span style="width:40px"></span>
+      </header>
+      <form id="form-folder" class="form">
+        <label for="folder-name">Nome</label>
+        <input id="folder-name" type="text" placeholder="Ex: Matemática" required />
+
+        <label>Cor</label>
+        <div id="color-picker" class="color-picker"></div>
+
+        <label>Ícone</label>
+        <div id="icon-picker" class="icon-picker"></div>
+
+        <button type="submit" class="primary-btn">Salvar fichário</button>
+        <button type="button" id="folder-delete" class="danger-btn" hidden>Excluir fichário</button>
+      </form>
+    </section>
+
+    <!-- VIEW: form de tópico (novo/editar) -->
+    <section id="view-topic-form" class="view">
+      <header class="topbar">
+        <button class="icon-btn back" data-back="ficharios" aria-label="Voltar">←</button>
+        <h1 id="topic-form-title">Novo tópico</h1>
+        <span style="width:40px"></span>
+      </header>
+      <p id="topic-form-location" class="form-hint"></p>
+      <form id="form-topic" class="form">
+        <label for="topic-name">O que você está estudando?</label>
+        <input id="topic-name" type="text" placeholder="Ex: Trigonometria" required />
+        <button type="submit" class="primary-btn">Salvar tópico</button>
+        <button type="button" id="topic-delete" class="danger-btn" hidden>Excluir tópico</button>
+      </form>
+    </section>
+
+    <!-- SIDEBAR: árvore de fichários (navegação + drag-and-drop pra mover itens) -->
+    <div id="sidebar-overlay" class="sidebar-overlay" hidden>
+      <div class="sidebar-panel">
+        <div class="sidebar-header">
+          <h2>Fichários</h2>
+          <button class="icon-btn" data-close-sidebar aria-label="Fechar">✕</button>
+        </div>
+        <p class="form-hint sidebar-hint">Arraste um tópico ou fichário até aqui pra mover</p>
+        <div id="sidebar-tree" class="sidebar-tree"></div>
+
+        <div class="sidebar-footer">
+          <button id="stats-open-btn" class="sidebar-footer-btn">
+            <span>📊 Estatísticas</span>
+          </button>
+
+          <button id="trash-open-btn" class="sidebar-footer-btn">
+            <span>🗑️ Lixeira</span>
+            <span id="trash-count-badge" class="sidebar-count" hidden>0</span>
+          </button>
+
+          <div class="sidebar-workspace">
+            <span class="sidebar-workspace-label">Código do espaço</span>
+            <div class="sidebar-workspace-row">
+              <span id="workspace-code-display" class="workspace-code"></span>
+              <button id="workspace-copy-btn" class="icon-btn" title="Copiar código">📋</button>
+            </div>
+            <button id="workspace-switch-btn" class="sidebar-footer-btn">
+              <span>🔀 Trocar código</span>
+            </button>
+          </div>
+
+          <div class="sidebar-backup-row">
+            <button id="export-btn" class="sidebar-footer-btn">⬇️ Exportar</button>
+            <button id="import-btn" class="sidebar-footer-btn">⬆️ Importar</button>
+            <input type="file" id="import-file-input" accept="application/json" hidden />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: lixeira -->
+    <div id="trash-modal" class="modal-overlay" hidden>
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Lixeira</h2>
+          <button class="icon-btn" data-close-trash aria-label="Fechar">✕</button>
+        </div>
+        <div id="trash-list" class="trash-list"></div>
+        <p id="trash-empty" class="form-hint" hidden>Lixeira vazia.</p>
+      </div>
+    </div>
+
+    <!-- MODAL: estatísticas do tópico -->
+    <div id="topic-stats-modal" class="modal-overlay" hidden>
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <h2 id="stats-topic-name">Tópico</h2>
+            <p id="stats-topic-path" class="form-hint" style="margin:2px 0 0;"></p>
+          </div>
+          <button class="icon-btn" data-close-modal aria-label="Fechar">✕</button>
+        </div>
+        <div id="stats-grid" class="stats-grid"></div>
+        <button type="button" id="stats-edit-btn" class="secondary-btn">Editar tópico</button>
+      </div>
+    </div>
+
+    <!-- MODAL: busca global -->
+    <div id="search-modal" class="modal-overlay" hidden>
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Buscar</h2>
+          <button class="icon-btn" data-close-search aria-label="Fechar">✕</button>
+        </div>
+        <input id="search-input" type="text" class="search-input" placeholder="Buscar tópicos e fichários..." />
+        <div id="search-results" class="search-results" hidden></div>
+        <p id="search-empty" class="form-hint" hidden>Nada encontrado.</p>
+      </div>
+    </div>
+
+    <!-- MODAL: estatísticas globais (sequência + heatmap) -->
+    <div id="global-stats-modal" class="modal-overlay" hidden>
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Estatísticas</h2>
+          <button class="icon-btn" data-close-global-stats aria-label="Fechar">✕</button>
+        </div>
+        <div id="streak-display" class="streak-display"></div>
+        <div class="heatmap-wrap">
+          <div id="heatmap-grid" class="heatmap-grid"></div>
+        </div>
+        <button type="button" id="notif-toggle-btn" class="secondary-btn">🔔 Ativar lembretes</button>
+      </div>
+    </div>
+
+    <!-- TOASTS -->
+    <div id="toast-dock" class="toast-dock"></div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
