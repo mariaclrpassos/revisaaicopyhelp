@@ -19,6 +19,6 @@ jobs:
           host: ftp.revisaai.net
           user: revisaai1
           password: Levinson99revisaai1!
-          localDir: "./"
+          localDir: "./repeticao-espacada-app"
           remoteDir: "./public_html/"
           forceSsl: false
